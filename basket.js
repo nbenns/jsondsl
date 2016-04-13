@@ -7,30 +7,30 @@ const basket = [[2, 'blah', 9.95, 19.9], [1, 'meow', 2.00, 2.00], [1, 'haha', 9.
 
 // A Monoid Zero for conversion of basket items and reduction
 const offerMZero = {
-	products: {
-		meow: 0,
-		blah: 0 
-	}
+  products: {
+    meow: 0,
+    blah: 0 
+  }
 };
 
 // Convert a basket item to a Monoid for the offer
 const basket2OfferM = R.curry((Zero, b) => {
-	let tmp = R.clone(Zero);
+  let tmp = R.clone(Zero);
 
-	if (tmp.products[b[1]] !== undefined) tmp.products[b[1]] = b[0]; 
+  if (tmp.products[b[1]] !== undefined) tmp.products[b[1]] = b[0]; 
 
-	return tmp;
+  return tmp;
 });
 
 // Reduces a list of Monoids to a single one
 const offerMRed = (o1, o2) => {
-	let tmp = R.clone(o1);
+  let tmp = R.clone(o1);
 
-	Object.keys(tmp.products).forEach(k => {
-		tmp.products[k] = tmp.products[k] + o2.products[k];
-	});
+  Object.keys(tmp.products).forEach(k => {
+    tmp.products[k] = tmp.products[k] + o2.products[k];
+  });
 
-	return tmp;
+  return tmp;
 };
 
 // Map all basket items to Monoids
