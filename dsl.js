@@ -154,7 +154,7 @@ const runDSL = (Functions, Rule, Obj) => {
 };
 
 const inrange = (s, e, o) => R.and(R.lte(s), R.gte(e))(o);
-const sum = v => R.compose(R.sum, R.values)(v);
+const sum = R.compose(R.sum, R.values);
 
 /*console.log(DSLTypes['Integer'](2.3));
 console.log(addFunction("add", R.add, 'Integer', 'Integer'));
