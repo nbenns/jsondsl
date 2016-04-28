@@ -23,81 +23,128 @@ const basket = {
   }
 }
 
-const DSLTypes = {
-  "Real": r => {
-    if (isNaN(r)) {
-      return RF.Either.Left("Not a valid Real Number: " + r);
-    } else {
-      return RF.Either.Right(r);
-    }
-  },
-  "PosReal": r =>
-    DSLTypes["Number"](r).chain(p => {
-      if (p >= 0) {
-        return RF.Either.Right(p);
-      } else {
-        return RF.Either.Left("Not a valid Positive Real Number: " + p);
-      }
-    }),
-  "NegReal": r =>
-    DSLTypes["Real"](r).chain(p => {
-      if (p <= 0) {
-        return RF.Either.Right(p);
-      } else {
-        return RF.Either.Left("Not a valid Negative Real Number: " + p);
-      }
-    }),
-  "Integer": r =>
-    DSLTypes["Real"](r).chain(i => {
-      const fi = Math.floor(i);
-      
-      if (fi == i) {
-        return RF.Either.Right(fi);
-      } else {
-        return RF.Either.Left("Not a valid Integer: " + i);
-      }
-    }),
-  "Whole": r =>
-    DSLTypes["Integer"](r).chain(n => {
-      if (n >= 0) {
-        return RF.Either.Right(n);
-      } else {
-        return RF.Either.Left("Not a valid Whole Number: " + n);
-      }
-    }),
-  "Natural": r =>
-    DSLTypes["Whole"](r).chain(n => {
-      if (n > 0) {
-        return RF.Either.Right(n);
-      } else {
-        return RF.Either.Left("Not a valid Natural Number: " + n);
-      }
-    }),
-  "NegWhole": r =>
-    DSLTypes["Integer"](r).chain(n => {
-      if (n <= 0) {
-        return RF.Either.Right(n);
-      } else {
-        return RF.Either.Left("Not a valid Negative Whole Number: " + n);
-      }
-    }),
-  "Negative": r =>
-    DSLTypes["NegWhole"](r).chain(n => {
-      if (n < 0) {
-        return RF.Either.Right(n);
-      } else {
-        return RF.Either.Left("Not a valid Negative Number: " + n);
-      }
-    }),
-  "Boolean": b => {
-    if (typeof b === 'boolean') {
-      return RF.Either.Right(b);
-    } else {
-      return RF.Either.Left('Not a valid Boolean: ' + b);
-    }
-  },
-  "Any": a => RF.Either.Right(a)
-}
+const DSLTypes = {};
+
+DSLTypes["Real"] = R.ifElse(
+  isNaN,
+  R.compose(
+    RF.Either.Left,
+    R.concat('Not a valid Real Number: ')
+  ),
+  RF.Either.Right
+);
+
+DSLTypes["PosReal"] = R.compose(
+  R.chain(
+    R.ifElse(
+      R.flip(R.gte())(0),
+      RF.Either.Right,
+      R.compose(
+        RF.Either.Left,
+        R.concat('Not a valid Positive Real Number: ')
+      )
+    )
+  ),
+  DSLTypes["Real"]
+);
+
+DSLTypes["NegReal"] = R.compose(
+  R.chain(
+    R.ifElse(
+      R.flip(R.lte())(0),
+      RF.Either.Right,
+      R.compose(
+        RF.Either.Left,
+        R.concat('Not a valid Negative Real Number: ')
+      )
+    )
+  ),
+  DSLTypes["Real"]
+);
+
+DSLTypes["Integer"] = R.compose(
+  R.chain(
+    R.ifElse(
+      R.converge(R.equals, [R.identity, Math.floor]),
+      RF.Either.Right,
+      R.compose(
+        RF.Either.Left,
+        R.concat('Not a valid Integer: ')
+      )
+    )
+  ),
+  DSLTypes["Real"]
+);
+
+DSLTypes["Whole"] = R.compose(
+  R.chain(
+    R.ifElse(
+      R.flip(R.gte)(0),
+      RF.Either.Right,
+      R.compose(
+        RF.Either.Left,
+        R.concat("Not a valid Whole Number: ")
+      )
+    )
+  ),
+  DSLTypes["Integer"]
+);
+
+DSLTypes["Natural"] = R.compose(
+  R.chain(
+    R.ifElse(
+      R.flip(R.gt)(0),
+      RF.Either.Right,
+      R.compose(
+        RF.Either.Left,
+        R.concat("Not a valid Natural Number: ")
+      )
+    )
+  ),
+  DSLTypes["Integer"]
+);
+
+DSLTypes["NegWhole"] = R.compose(
+  R.chain(
+    R.ifElse(
+      R.flip(R.lte)(0),
+      RF.Either.Right,
+      R.compose(
+        RF.Either.Left,
+        R.concat("Not a valid Negative Whole Number: ")
+      )
+    )
+  ),
+  DSLTypes["Integer"]
+);
+
+DSLTypes["NegNatural"] = R.compose(
+  R.chain(
+    R.ifElse(
+      R.flip(R.lt)(0),
+      RF.Either.Right,
+      R.compose(
+        RF.Either.Left,
+        R.concat("Not a valid Negative Natural Number: ")
+      )
+    )
+  ),
+  DSLTypes["Integer"]
+);
+
+DSLTypes["Boolean"] = R.ifElse(
+  R.compose(
+    R.equals('boolean'),
+    R.type
+  ),
+  RF.Either.Right,
+  R.compose(
+    RF.Either.Left,
+    R.concat('Not a valid Boolean: ')
+  )
+);
+
+DSLTypes["Any"] = RF.Either.Right;
 
 const DSLFunctions = {};
  
